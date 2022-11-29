@@ -2,9 +2,7 @@
 Baum-Welch re-estimation algorithm implementation for KKY/ARŘ lectures
 """
 
-from re import A
 import numpy as np
-from pyparsing import alphas
 
 """A_DICT = {
          "mean": [-1.820163e+000, 2.948045e-001, -9.102286e-001, -5.090310e-001, -4.833414e-001, -2.789246e-001, -2.483530e-001, -1.946086e-002, -2.488011e-001, -1.734584e-001, -1.326621e-001, -6.957074e-002, -6.207554e-002],
@@ -20,6 +18,45 @@ O_DICT = {
          "mean": [-2.774132e+000, 8.278207e-001, -5.067130e-001, -7.707845e-001, -4.396908e-001, -3.018584e-001, -4.529741e-001, -1.182087e-001, -5.049667e-002, -7.423452e-002, -1.431837e-001, -1.037804e-001, -6.737377e-002],
          "variance": [2.095176e+000, 2.614865e-001, 1.857337e-001, 1.567194e-001, 6.444157e-002, 6.257857e-002, 4.931529e-002, 5.150662e-002, 3.487385e-002, 2.563643e-002, 2.315338e-002, 1.673202e-002, 1.605465e-002]
          }"""
+
+
+"""
+T - max time
+N - number of emitting states
+alphas, betas - coefficients for forward-backward algorithm
+"""
+def reestimate_mean(N,T,alphas,betas):
+  mu = []
+  for j in range(1,N-1):
+    num_sum = 0
+    den_sum = 0
+    for t in range(T):
+      #print(alphas[t][j],"\n",betas[t][j],"\n",loaded_text[t],"\n")
+      num_sum += alphas[t][j]*betas[t][j]*loaded_text[t]
+      den_sum += alphas[t][j]*betas[t][j]
+    mu.append(num_sum/den_sum)
+  return mu
+
+def reestimate_cov(N,T,alphas,betas,mu):
+  cov = []
+  for j in range(N-2):
+    num_sum = 0
+    den_sum = 0
+    for t in range(T):
+      #print(alphas[t][j],"\n",betas[t][j],"\n",loaded_text[t],"\n")
+      temp = np.matmul((loaded_text[t]-mu[j]),np.transpose((loaded_text[t]-mu[j])))
+      print(np.shape(temp))
+      num_sum += alphas[t][j]*betas[t][j]*temp
+      den_sum += alphas[t][j]*betas[t][j]
+    cov.append(num_sum/den_sum)
+  return cov
+
+def update_states(list_of_states, new_mu, new_cov):
+  for x,i in zip(list_of_states,range(len(list_of_states))):
+    x["mean"] = new_mu[i]
+    x["covariance"] = new_cov[i]
+
+
 
 EMPTY_DICT = {
               "mean": np.zeros(13),
@@ -84,21 +121,13 @@ den_sum = 0
 
 
 
-mu_j = []
+mu = reestimate_mean(N=5,T=33,alphas=alphas,betas=betas)
+cov = reestimate_cov(N=5,T=33,alphas=alphas,betas=betas,mu=mu)
+print(cov)
 
-# print(np.shape(alphas))
-# print(np.shape(betas))
-# print(np.shape(loaded_text))
-for j in range(1,4):
-  for t in range(33):
-    #print(alphas[t][j],"\n",betas[t][j],"\n",loaded_text[t],"\n")
-    num_sum += alphas[t][j]*betas[t][j]*loaded_text[t]
-    den_sum += alphas[t][j]*betas[t][j]
-  mu_j.append(num_sum/den_sum)
-
-#print(mu_j)
-for x,i in zip([A_DICT,N_DICT,O_DICT],range(3)):
-  x["mean"] = mu_j[i]
+cov = [0,1,2]
+update_states([A_DICT,N_DICT,O_DICT],mu,cov)
+#reestimate_parameters(5,33,alphas,betas)
 
 mu_j = []
 
@@ -131,6 +160,8 @@ den_sum = 0
 # print(np.shape(betas))
 # print(np.shape(loaded_text))
 for j in range(1,4):
+  num_sum = 0
+  den_sum = 0
   for t in range(33):
     #print(alphas[t][j],"\n",betas[t][j],"\n",loaded_text[t],"\n")
     num_sum += alphas[t][j]*betas[t][j]*loaded_text[t]
@@ -166,14 +197,14 @@ print(np.log(bfp))
 #exit()
 #print(betas)
 #for j in range(3):
-num_sum = 0
-den_sum = 0
 
 
 # print(np.shape(alphas))
 # print(np.shape(betas))
 # print(np.shape(loaded_text))
 for j in range(1,4):
+  num_sum = 0
+  den_sum = 0
   for t in range(33):
     #print(alphas[t][j],"\n",betas[t][j],"\n",loaded_text[t],"\n")
     num_sum += alphas[t][j]*betas[t][j]*loaded_text[t]
@@ -215,6 +246,8 @@ den_sum = 0
 # print(np.shape(betas))
 # print(np.shape(loaded_text))
 for j in range(1,4):
+  num_sum = 0
+  den_sum = 0
   for t in range(33):
     #print(alphas[t][j],"\n",betas[t][j],"\n",loaded_text[t],"\n")
     num_sum += alphas[t][j]*betas[t][j]*loaded_text[t]
@@ -256,88 +289,8 @@ den_sum = 0
 # print(np.shape(betas))
 # print(np.shape(loaded_text))
 for j in range(1,4):
-  for t in range(33):
-    #print(alphas[t][j],"\n",betas[t][j],"\n",loaded_text[t],"\n")
-    num_sum += alphas[t][j]*betas[t][j]*loaded_text[t]
-    den_sum += alphas[t][j]*betas[t][j]
-  mu_j.append(num_sum/den_sum)
-
-  """ 6TH RE-ESTIMATION"""
-for x,i in zip([A_DICT,N_DICT,O_DICT],range(3)):
-  x["mean"] = mu_j[i]
-
-mu_j = []
-
-b_list = []
-for segment in loaded_text:
-  row = [0]
-  #for fonem in [EMPTY_DICT,A_DICT,N_DICT,O_DICT,EMPTY_DICT]:
-  for fonem in [A_DICT,N_DICT,O_DICT]:
-    #print(fonem["mean"])
-    row.append(b_func(segment,fonem["mean"],fonem["variance"]))
-    #exit()
-  row.append(0)
-  b_list.append(row)
-  #print(row)
-  #exit()
-
-alphas,afp = alpha_func(33,5,A_probabilities,b_list)
-print(np.log(afp))
-#print(loaded_text[0])
-betas,bfp = beta_func(33,5,A_probabilities,b_list)
-print(np.log(bfp))
-#exit()
-#print(betas)
-#for j in range(3):
-num_sum = 0
-den_sum = 0
-
-
-# print(np.shape(alphas))
-# print(np.shape(betas))
-# print(np.shape(loaded_text))
-for j in range(1,4):
-  for t in range(33):
-    #print(alphas[t][j],"\n",betas[t][j],"\n",loaded_text[t],"\n")
-    num_sum += alphas[t][j]*betas[t][j]*loaded_text[t]
-    den_sum += alphas[t][j]*betas[t][j]
-  mu_j.append(num_sum/den_sum)
-
-  """ SECOND RE-ESTIMATION"""
-for x,i in zip([A_DICT,N_DICT,O_DICT],range(3)):
-  x["mean"] = mu_j[i]
-
-mu_j = []
-
-b_list = []
-for segment in loaded_text:
-  row = [0]
-  #for fonem in [EMPTY_DICT,A_DICT,N_DICT,O_DICT,EMPTY_DICT]:
-  for fonem in [A_DICT,N_DICT,O_DICT]:
-    #print(fonem["mean"])
-    row.append(b_func(segment,fonem["mean"],fonem["variance"]))
-    #exit()
-  row.append(0)
-  b_list.append(row)
-  #print(row)
-  #exit()
-
-alphas,afp = alpha_func(33,5,A_probabilities,b_list)
-print(np.log(afp))
-#print(loaded_text[0])
-betas,bfp = beta_func(33,5,A_probabilities,b_list)
-print(np.log(bfp))
-#exit()
-#print(betas)
-#for j in range(3):
-num_sum = 0
-den_sum = 0
-
-
-# print(np.shape(alphas))
-# print(np.shape(betas))
-# print(np.shape(loaded_text))
-for j in range(1,4):
+  num_sum = 0
+  den_sum = 0
   for t in range(33):
     #print(alphas[t][j],"\n",betas[t][j],"\n",loaded_text[t],"\n")
     num_sum += alphas[t][j]*betas[t][j]*loaded_text[t]

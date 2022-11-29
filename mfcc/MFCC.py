@@ -1,4 +1,5 @@
 """
+Acoustic analysis
 Mel-Frequency Cepstral Coefficients algorithm implementation
 Created for lectures of KKY/ARŘ at University of West Bohemia
 """
