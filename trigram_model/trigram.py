@@ -1,5 +1,6 @@
 import numpy as np
-
+import time
+start = time.time()
 path1 = "./trigram_model/train.txt"
 path2 = "./trigram_model/cestina"
 
@@ -87,6 +88,8 @@ with open(path2,"r",encoding="windows-1250") as f:
     LEGAL_WORDS.add(line.strip("\n"))
 LEGAL_WORDS.add("</s>")
 LEGAL_WORDS.add("<s>")
+lap1 = time.time()
+print("l1",lap1-start)
 
 source_text = list()
 unigram_count = dict()
@@ -96,7 +99,8 @@ with open(path1,"r",encoding="windows-1250") as f:
   for line in f.readlines():
     line = "<s> " + line.strip("\n") + " </s>"
     source_text.append(line)
-
+lap2 = time.time()
+print("l2",lap2-lap1)
 
 
 print("########################UNIGRAMY########################")
@@ -193,3 +197,6 @@ print("tri <s> <unk> <unk> :", trigram_ML[("<s>", "<unk>", "<unk>")])
 print("tri a tak se :", trigram_ML[("a", "tak", "se")])
 print("tri a za této :", trigram_ML[("a", "za", "této")])
 # print("bi a o :", trigram_ML["a o"])
+lap3 = time.time()
+print("l3",lap3-lap2)
+print("full",time.time()-start)
