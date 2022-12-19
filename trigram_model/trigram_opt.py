@@ -1,11 +1,12 @@
 import math
 import time
 start = time.time()
-path1 = "./trigram_model/train.txt"
-path2 = "./trigram_model/cestina"
+text_path = "./trigram_model/train.txt"
+dict_path = "./trigram_model/cestina"
+export_path = "./trigram_model/arpa.txt"
 
 LEGAL_WORDS = set()
-with open(path2,"r",encoding="windows-1250") as f:
+with open(dict_path,"r",encoding="windows-1250") as f:
   for line in f.readlines():
     LEGAL_WORDS.add(line.strip("\n"))
 LEGAL_WORDS.add("</s>")
@@ -18,7 +19,7 @@ sentence_count = 0
 unigram_count = dict()
 bigram_count = dict()
 trigram_count = dict()
-with open(path1,"r",encoding="windows-1250") as f:
+with open(text_path,"r",encoding="windows-1250") as f:
   for line in f.readlines():
     sentence = ("<s> " + line.strip("\n") + " </s>").split()
     
@@ -88,3 +89,13 @@ print("tri a za této :", trigram_ML[("a", "za", "této")])
 lap3 = time.time()
 print("l3",lap3-lap1)
 print("full",time.time()-start)
+
+with open(export_path,"w") as f:
+  f.write("/data/")
+  f.write(f"ngram 1={len(unigram_count)}")
+  f.write(f"ngram 2={len(bigram_count)}")
+  f.write(f"ngram 3={len(trigram_count)}")
+  f.write()
+  f.write("/1-grams:")
+  for 
+  
