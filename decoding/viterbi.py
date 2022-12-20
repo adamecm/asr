@@ -48,7 +48,6 @@ min_state = word_net[min_path][-1]
 min_val = ends[min_path] + trans_probs[min_state][1]
 ##### calc #####
 min_cost = []
-t = 0
 
 
 print("t=1 a(a) = ", phi_net[0][0])
@@ -57,13 +56,25 @@ print("t=1 # = ", phi_net[-1][0])
 
 
 for t in range(1,len(acoustic_model)): #t = 2 to T (392), every vector from acoustic model
-  ends = [(x[-1] + trans_probs[y[-1]][1]) for x,y in zip(old_phi_net,word_net)]
-  # ends = [x[-1] for x in phi_net]
-  min_path = np.argmin(ends)
-  min_state = word_net[min_path][-1]
-  min_val = ends[min_path] + trans_probs[min_state][1]
   
-   #first of each word
+  for w in range(len(phi_net)): #every word
+    word = word_net[w]
+    #1 to end of each word
+    for j in range(len(word)):
+      temp = phi_net[w][j]
+
+      prev_char = word[j-1]
+      current_char = word[j]
+
+      prev_phi = old_phi_net[w][j-1] + trans_probs[prev_char][1] #prev + trans
+      current_phi = old_phi_net[w][j] + trans_probs[current_char][0] #same + loop
+    
+      phi_net[w][j] = min(prev_phi,current_phi) + acoustic_model[t][current_char]
+      old_phi_net[w][j] = temp
+      # old_phi_net[w][j] = phi_net[w][j]
+    # ends.append(phi_net[w][-1])
+    
+  
   for w in range(len(phi_net)):
     temp = phi_net[w][0]
 
@@ -76,28 +87,17 @@ for t in range(1,len(acoustic_model)): #t = 2 to T (392), every vector from acou
     phi_net[w][0] = min(prev_phi,current_phi) + acoustic_model[t][current_char]
 
     old_phi_net[w][0] = temp
-
+#  #first of each word
+# for w in range(len(phi_net)):
   
-  for w in range(len(phi_net)): #every word
-    word = word_net[w]
-  #1 to end of each word
-    for j in range(1,len(word)):
+  ends = [(x[-1] + trans_probs[y[-1]][1]) for x,y in zip(old_phi_net,word_net)]
+  # ends = [x[-1] for x in old_phi_net]
+  min_path = np.argmin(ends)
+  min_state = word_net[min_path][-1]
+  min_val = ends[min_path]# + trans_probs[min_state][1]
+  # min_val = old_phi_net[min_path][-1] + trans_probs[min_state][0] + acoustic_model[t][min_state]
 
 
-      
-      temp = phi_net[w][j]
-
-
-      prev_char = word[j-1]
-      current_char = word[j]
-
-      prev_phi = old_phi_net[w][j-1] + trans_probs[prev_char][1] #prev + trans
-      current_phi = old_phi_net[w][j] + trans_probs[current_char][0] #same + loop
-     
-      phi_net[w][j] = min(prev_phi,current_phi) + acoustic_model[t][current_char]
-      # old_phi_net[w][j] = temp
-      old_phi_net[w][j] = phi_net[w][j]
-    # ends.append(phi_net[w][-1])
   
   
 
