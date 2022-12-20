@@ -71,7 +71,8 @@ for t in range(1,len(acoustic_model)): #t = 2 to T (392), every vector from acou
       # old_phi_net[w][j] = temp
       # phi_net[w][j] = phi_net[w][j]
     # ends.append(phi_net[w][-1])
-  ends = [x[-1] for x in phi_net]
+  # ends = [x[-1] for x in phi_net]
+  ends = [(x[-1] + trans_probs[y[-1]][1]) for x,y in zip(phi_net,word_net)]
   min_path = np.argmin(ends)
   min_state = word_net[min_path][-1]
   min_val = ends[min_path] + trans_probs[min_state][1]
