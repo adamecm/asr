@@ -56,36 +56,29 @@ print("t=1 # = ", phi_net[-1][0])
 tokens = list()
 for t in range(1,len(observations_B)): #t = 2 to T (392), every observation vector
   old_phi_net = copy.deepcopy(phi_net)
-  
-  ends = [[(phi[-1][0] + trans_probs[word[-1]][1] - BETA*language_model.get(wordlist[idx],language_model["<unk>"])), phi[-1][1]] for phi,word,idx in zip(old_phi_net,word_net,range(len(word_net)))]
-  # ends = list()
-  # for i, word in enumerate(word_net):
-  #   ends.append([old_phi_net[i][-1][0] + trans_probs[word[-1]][1] - BETA * language_model.get(wordlist[i], language_model["<unk>"]) , old_phi_net[i][-1][1]])
-  #   # ends.append(old_phi_net[i][-1][0] + trans_probs)
+  # ends = [[(phi[-1][0] + trans_probs[word[-1]][1] - BETA*language_model.get(wordlist[idx],language_model["<unk>"])), phi[-1][1]] for phi,word,idx in zip(old_phi_net,word_net,range(len(word_net)))]
+  ends = list()
+  for previous_token_index, word in enumerate(word_net):
+    ends.append([old_phi_net[previous_token_index][-1][0] + trans_probs[word[-1]][1] - BETA * language_model.get(wordlist[previous_token_index], language_model["<unk>"]) , old_phi_net[previous_token_index][-1][1]])
   min_cost_val = min(ends)
-  # min_cost_idx = np.argmin(ends,axis = 0)[0]
   min_cost_idx = ends.index(min_cost_val)
-
-  tokens.append([wordlist[min_cost_idx],min_cost_val[1]])
-
+  tokens.append((wordlist[min_cost_idx],min_cost_val[1]))
   min_cost_val[1] = len(tokens) - 1 
-  min_cost_val[0] += LGAMMA
-
-
+  min_cost_val[0] += LGAMMA  #min_cost_val = (min_cost_val[0] + LGAMMA, len(tokens) - 1)
   for w in range(len(phi_net)): #every word
     word = word_net[w]
-    # min_cost = min(min_cost_val,[old_phi_net[w][0][0]+trans_probs[word[0]][0],old_phi_net[w][0][1]])
-    phi_net[w][0] = min(min_cost_val,[old_phi_net[w][0][0]+trans_probs[word[0]][0],old_phi_net[w][0][1]])
-    # phi_net[w][0] = [min_cost[0] + observations_B[t][word[0]],min_cost[1]]
-    phi_net[w][0][0] += observations_B[t][word[0]]
+    cost = min(min_cost_val,[old_phi_net[w][0][0]+trans_probs[word[0]][0], old_phi_net[w][0][1]])
+    phi_net[w][0] = [cost[0] + observations_B[t][word[0]], cost[1]]
+    # phi_net[w][0] = min([min_cost_val,[old_phi_net[w][0][0]+trans_probs[word[0]][0],old_phi_net[w][0][1]]])
+    # phi_net[w][0][0] = phi_net[w][0][0] + observations_B[t][word[0]]
     #1 to end of each word
     for j in range(1,len(word)):
-
       prev_phi = [old_phi_net[w][j-1][0] + trans_probs[word[j-1]][1],old_phi_net[w][j-1][1]] #prev + trans
       current_phi = [old_phi_net[w][j][0] + trans_probs[word[j]][0],old_phi_net[w][j][1]] #same + loop
-
-      phi_net[w][j] = min(prev_phi,current_phi)
-      phi_net[w][j][0] += observations_B[t][word[j]]
+      cost = min(prev_phi,current_phi)
+      phi_net[w][j] = [cost[0] + observations_B[t][word[j]], cost[1]]
+      # phi_net[w][j] = min(prev_phi,current_phi)
+      # phi_net[w][j][0] += observations_B[t][word[j]]
 
 
 
@@ -100,16 +93,6 @@ for t in range(1,len(observations_B)): #t = 2 to T (392), every observation vect
     print("t=392 # = ", phi_net[-1][0])
 
 
-# chars = {val:key for key,val in char_idx.items()}
-# print(np.unique(tokens))
-
-# for x in np.unique(tokens):
-#   print(wordlist[x])
-
-# ends = [(x[-1] + trans_probs[y[-1]][1]) for x,y in zip(phi_net,word_net)]
-# ends = [(phi[-1][0] + trans_probs[word[-1]][1] + BETA*language_model.get(wordlist[idx],language_model["<unk>"])) for phi,word,idx in zip(old_phi_net,word_net,range(len(word_net)))]
-
-# ends = [[(phi[-1][0] + trans_probs[word[-1]][1] - BETA*language_model.get(wordlist[idx],language_model["<unk>"])), phi[-1][1]] for phi,word,idx in zip(old_phi_net,word_net,range(len(word_net)))]
 ends = [[(phi[-1][0] + trans_probs[word[-1]][1] - BETA*language_model.get(wordlist[idx],language_model["<unk>"])), phi[-1][1]] for phi,word,idx in zip(old_phi_net,word_net,range(len(word_net)))]
 final_min_val = min(ends)
 # # final_min_idx = np.argmin(ends,axis = 0)[0]
@@ -117,17 +100,17 @@ final_min_idx = ends.index(final_min_val)
 # tokens.append([wordlist[min_cost_idx],min_cost_val[1]])
 # print("Minimal cost = ",final_min_val[0])
 
-final_min_val = min_cost_val
-final_min_idx = min_cost_idx
+# final_min_val = min_cost_val
+# final_min_idx = min_cost_idx
 
-i = final_min_val[1]
-posloupnost = [wordlist[final_min_idx]]
-while(i>0):
-    posloupnost.append(tokens[i][0])
-    i = tokens[i][1]
-    print(i)
-posloupnost.reverse()
-print(posloupnost)
+previous_token_index = final_min_val[1]
+spoken_words = [wordlist[final_min_idx]]
+while(previous_token_index > 0):
+    spoken_words.append(tokens[previous_token_index][0])
+    previous_token_index = tokens[previous_token_index][1]
+    # print(previous_token)
+spoken_words.reverse()
+print(spoken_words)
 
 #beta = 5
 # gamma = 0.01
